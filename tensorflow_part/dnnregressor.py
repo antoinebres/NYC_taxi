@@ -134,7 +134,7 @@ def main(hidden_units, learning_rate):
             tf.contrib.learn.MetricSpec(
                 metric_fn=tf.contrib.metrics.streaming_root_mean_squared_error)}
     validation_monitor = tf.contrib.learn.monitors.ValidationMonitor(
-        input_fn=lambda: input_fn(cv_training_set),
+        input_fn=lambda: input_fn(cv_test_set),
         every_n_steps=50,
         metrics=validation_metrics,
         early_stopping_metric="rmse",
@@ -151,7 +151,7 @@ def main(hidden_units, learning_rate):
         config=tf.contrib.learn.RunConfig(save_checkpoints_secs=20)
         )
     # Training
-    estimator = train_model(cv_training_set, estimator, 50, validation_monitor)
+    estimator = train_model(cv_training_set, estimator, 500, validation_monitor)
 
     # Prediction
     predictions = predict_model(cv_test_set, estimator)
