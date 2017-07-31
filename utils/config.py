@@ -1,16 +1,16 @@
-RAW_TRAINING_SET_FILE = "datasets/train.csv"
+RAW_TRAINING_SET_FILE = 'datasets/train.csv'
 
-RAW_TEST_SET_FILE = "datasets/test.csv"
+RAW_TEST_SET_FILE = 'datasets/test.csv'
 
-TRAINING_SET_FILE = "datasets/processed_train.csv"
+TRAINING_SET_FILE = 'datasets/processed_train.csv'
 
-TEST_SET_FILE = "datasets/processed_test.csv"
+TEST_SET_FILE = 'datasets/processed_test.csv'
 
-CV_TRAINING_SET_FILE = "datasets/split_train.csv"
+CV_TRAINING_SET_FILE = 'datasets/split_train.csv'
 
-CV_TEST_SET_FILE = "datasets/split_test.csv"
+CV_TEST_SET_FILE = 'datasets/split_test.csv'
 
-PREDICTION_SET_FILE = "datasets/sample_submission.csv"
+PREDICTION_SET_FILE = 'datasets/sample_submission.csv'
 
 COLUMNS = [
     'passenger_count',
@@ -23,14 +23,27 @@ COLUMNS = [
     'pickup_pca1',
     'dropoff_pca0',
     'dropoff_pca1',
-    "manhattan_dist",
-    "haversine_dist",
-    "trip_to_JFK",
-    "trip_from_JFK",
-    "trip_from_LGA",
-    "trip_to_LGA",
-    "work",
+    'manhattan_dist',
+    'haversine_dist',
+    'trip_to_JFK',
+    'trip_from_JFK',
+    'trip_from_LGA',
+    'trip_to_LGA',
+    'work',
     'trip_duration',
+    ]
+
+CATEGORICALS = [
+        'vendor_id',
+        'store_and_fwd_flag',
+        'pickup_hour',
+        'day_week',
+        'pickup_hour_weekofyear',
+        'trip_to_JFK',
+        'trip_from_JFK',
+        'trip_from_LGA',
+        'trip_to_LGA',
+        'work'
     ]
 
 FEATURES = [
@@ -43,17 +56,17 @@ FEATURES = [
     'pickup_pca1',
     'dropoff_pca0',
     'dropoff_pca1',
-    "manhattan_dist",
-    "haversine_dist",
-    "trip_to_JFK",
-    "trip_from_JFK",
-    "trip_from_LGA",
-    "trip_to_LGA",
-    "work",
+    'manhattan_dist',
+    'haversine_dist',
+    'trip_to_JFK',
+    'trip_from_JFK',
+    'trip_from_LGA',
+    'trip_to_LGA',
+    'work',
     ]
 
-LABEL = "trip_duration"
+LABEL = 'trip_duration'
 
-MODELS_DIR = "tensorflow/models"
+MODELS_DIR = 'tensorflow_part/models'
 
-SUBMISSIONS_DIR = "submissions"
+SUBMISSIONS_DIR = 'submissions'
