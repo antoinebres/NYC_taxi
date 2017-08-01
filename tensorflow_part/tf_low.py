@@ -6,6 +6,12 @@ import tensorflow as tf
 from utils.config import *
 
 
+def batch_iterator(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
+
+
 def log_trip_duration(df):
     df['trip_duration_log'] = np.log(1 + df['trip_duration'].values)
     df = df.drop('trip_duration', axis=1)
@@ -50,6 +56,7 @@ def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
     y = tf.placeholder(tf.float32, shape=[None, ], name="y")
     layer_out, relu_out = stack_layers(x, 17, hidden_units)
     Y_pred = fc_layer(relu_out, layer_out, 1, "fc_out")
+    Y_pred = tf.reshape(Y_pred, [-1])
     with tf.name_scope("rmsle"):
         mean_log = tf.reduce_mean(tf.square(y-Y_pred))
         RMSLE = tf.sqrt(mean_log, name="rmsle")
@@ -63,27 +70,33 @@ def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
     writer = tf.summary.FileWriter(model_dir)
     writer.add_graph(sess.graph)
 
-    for i in range(155):
-        if i % 50 == 2:
-            print()
-            print("step %s out of 155" % str(i))
+    def training_step(i, write_metrics, training_set, test_set):
+        if write_metrics:
             s = sess.run(
                 summ,
                 {
-                    x: cv_test_set.drop(['trip_duration_log'], axis=1).as_matrix(),
-                    y:  cv_test_set['trip_duration_log'].as_matrix()
+                    x: test_set.drop(['trip_duration_log'], axis=1).as_matrix(),
+                    y:  test_set['trip_duration_log'].as_matrix()
                 }
             )
             writer.add_summary(s, i)
-        if i % 500 == 0:
-            saver.save(sess, os.path.join(model_dir, "model.ckpt"), i)
         sess.run(
             train_step,
             {
-                x: cv_training_set.drop(['trip_duration_log'], axis=1).as_matrix(),
-                y:  cv_training_set['trip_duration_log'].as_matrix()
+                x: training_set.drop(['trip_duration_log'], axis=1).as_matrix(),
+                y:  training_set['trip_duration_log'].as_matrix()
             }
         )
+
+    batch_size = 101519
+    for i in range(25):
+        for batch in batch_iterator(cv_training_set, batch_size):
+            training_step(i, i % 10 == 2, batch, cv_test_set)
+        # training_step(i, i % 10 == 2, cv_training_set, cv_test_set)
+        print()
+        print("epoch %s out of 25" % str(i))
+        if i % 500 == 0:
+            saver.save(sess, os.path.join(model_dir, "model.ckpt"), i)
 
 
 def main(hidden_units, learning_rate):
