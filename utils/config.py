@@ -6,9 +6,13 @@ TRAINING_SET_FILE = 'datasets/processed_train.csv'
 
 TEST_SET_FILE = 'datasets/processed_test.csv'
 
-CV_TRAINING_SET_FILE = 'datasets/split_train.csv'
+CV_TRAINING_SET_FILE = 'datasets/split_train_light.csv'
 
-CV_TEST_SET_FILE = 'datasets/split_test.csv'
+CV_TEST_SET_FILE = 'datasets/split_test_light.csv'
+
+# CV_TRAINING_SET_FILE = 'datasets/split_train.csv'
+
+# CV_TEST_SET_FILE = 'datasets/split_test.csv'
 
 PREDICTION_SET_FILE = 'datasets/sample_submission.csv'
 
