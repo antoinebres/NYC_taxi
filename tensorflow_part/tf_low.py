@@ -4,18 +4,13 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from utils.config import *
+from utils.preprocessing_data import log_trip_duration
 
 
 def batch_iterator(iterable, n=1):
     l = len(iterable)
     for ndx in range(0, l, n):
         yield iterable[ndx:min(ndx + n, l)]
-
-
-def log_trip_duration(df):
-    df['trip_duration_log'] = np.log(1 + df['trip_duration'].values)
-    df = df.drop('trip_duration', axis=1)
-    return df
 
 
 def str_model_dir(hidden_units, learning_rate):
@@ -46,15 +41,17 @@ def fc_layer(_input, size_in, size_out, name="fc"):
 
 
 def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
+    input_dim = 17
     model_dir = str_model_dir(hidden_units, learning_rate)
     tf.reset_default_graph()
     config = tf.ConfigProto(allow_soft_placement=True)
+    config.gpu_options.per_process_gpu_memory_fraction = 0.8
     sess = tf.Session(config=config)
 
     # Setup placeholders, and reshape the data
-    x = tf.placeholder(tf.float32, shape=[None, 17], name="x")
+    x = tf.placeholder(tf.float32, shape=[None, input_dim], name="x")
     y = tf.placeholder(tf.float32, shape=[None, ], name="y")
-    layer_out, relu_out = stack_layers(x, 17, hidden_units)
+    layer_out, relu_out = stack_layers(x, input_dim, hidden_units)
     Y_pred = fc_layer(relu_out, layer_out, 1, "fc_out")
     Y_pred = tf.reshape(Y_pred, [-1])
     with tf.name_scope("rmsle"):
@@ -89,27 +86,59 @@ def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
         )
 
     batch_size = 101519
-    for i in range(25):
+    n_epoch = 23
+    for i in range(n_epoch):
         for batch in batch_iterator(cv_training_set, batch_size):
-            training_step(i, i % 10 == 2, batch, cv_test_set)
-        # training_step(i, i % 10 == 2, cv_training_set, cv_test_set)
+            training_step(i, i % 5 == 2, batch, cv_test_set)
         print()
-        print("epoch %s out of 25" % str(i))
-        if i % 500 == 0:
-            saver.save(sess, os.path.join(model_dir, "model.ckpt"), i)
+        print("epoch %s out of %s" % (str(i + 1), str(n_epoch)))
+    
+    save_path = saver.save(sess, os.path.join(model_dir, "model.ckpt"))
+    print("Model saved in file %s" % save_path)
 
 
-def main(hidden_units, learning_rate):
-    cv_training_set = pd.read_csv(CV_TRAINING_SET_FILE, skipinitialspace=True,
+def predict_from_model(dataset, hidden_units, learning_rate):
+    model_dir = str_model_dir(hidden_units, learning_rate)
+    saver = tf.train.Saver()
+    config = tf.ConfigProto(allow_soft_placement = True)
+    config.gpu_options.per_process_gpu_memory_fraction = 0.8
+    sess = tf.Session(config = config)
+    sess.run(tf.global_variables_initializer())
+    try:
+        saver.restore(sess, os.path.join(model_dir, "model.ckpt"))
+    except:
+        print("Can't find any existing checkpoint")
+    predictions = sess.run(
+        Y_pred,
+        {
+            x: dataset.drop(['trip_duration_log'], axis=1).as_matrix(),
+            y:  dataset['trip_duration_log'].as_matrix()
+        }
+    )
+    return predictions
+    
+
+def train_model(hidden_units, learning_rate):
+    # Load data
+    cv_training_set = pd.read_csv(TRAINING_SET_FUSION, skipinitialspace=True,
                                skiprows=1, names=COLUMNS)
 
-    cv_test_set = pd.read_csv(CV_TEST_SET_FILE, skipinitialspace=True,
+    cv_test_set = pd.read_csv(CV_SET_FUSION, skipinitialspace=True,
                            skiprows=1, names=COLUMNS)
     cv_training_set = log_trip_duration(cv_training_set)
     cv_test_set = log_trip_duration(cv_test_set)
-    print('Starting run for %s' % str_model_dir([10, 10], 0.1))
+    
+    cv_training_set.pop('id')
+    cv_training_set.pop('total_distance')
+    cv_training_set.pop('total_duration')
+    cv_training_set.pop('number_of_streets')
+    cv_test_set.pop('id')
+    cv_test_set.pop('total_distance')
+    cv_test_set.pop('total_duration')
+    cv_test_set.pop('number_of_streets')
 
-    # Actually run with the new settings
+    # Train model
+    print('Starting run for %s' % str_model_dir(hidden_units, learning_rate))
     reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate)
     print('Done training!')
     print('Run `tensorboard --logdir=%s` to see the results.' % MODELS_DIR)

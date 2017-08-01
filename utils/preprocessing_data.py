@@ -9,6 +9,12 @@ JFK_coords = [40.6106, -73.6688]
 LGA_coords = [40.7475, -73.7629]
 
 
+def log_trip_duration(df):
+    df['trip_duration_log'] = np.log(1 + df['trip_duration'].values)
+    df = df.drop('trip_duration', axis=1)
+    return df
+
+
 def haversine_array(lat1, lng1, lat2, lng2):
     lat1, lng1, lat2, lng2 = map(np.radians, (lat1, lng1, lat2, lng2))
     AVG_EARTH_RADIUS = 6371  # in km
