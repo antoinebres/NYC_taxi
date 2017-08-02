@@ -5,12 +5,7 @@ import pandas as pd
 import tensorflow as tf
 from utils.config import *
 from utils.preprocessing_data import log_trip_duration
-
-
-def batch_iterator(iterable, n=1):
-    l = len(iterable)
-    for ndx in range(0, l, n):
-        yield iterable[ndx:min(ndx + n, l)]
+from utils.batch import batch_iterator
 
 
 def str_model_dir(hidden_units, learning_rate):
@@ -92,7 +87,7 @@ def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
             training_step(i, i % 5 == 2, batch, cv_test_set)
         print()
         print("epoch %s out of %s" % (str(i + 1), str(n_epoch)))
-    
+
     save_path = saver.save(sess, os.path.join(model_dir, "model.ckpt"))
     print("Model saved in file %s" % save_path)
 
@@ -100,9 +95,9 @@ def reg_model(cv_training_set, cv_test_set, hidden_units, learning_rate):
 def predict_from_model(dataset, hidden_units, learning_rate):
     model_dir = str_model_dir(hidden_units, learning_rate)
     saver = tf.train.Saver()
-    config = tf.ConfigProto(allow_soft_placement = True)
+    config = tf.ConfigProto(allow_soft_placement=True)
     config.gpu_options.per_process_gpu_memory_fraction = 0.8
-    sess = tf.Session(config = config)
+    sess = tf.Session(config=config)
     sess.run(tf.global_variables_initializer())
     try:
         saver.restore(sess, os.path.join(model_dir, "model.ckpt"))
@@ -116,18 +111,18 @@ def predict_from_model(dataset, hidden_units, learning_rate):
         }
     )
     return predictions
-    
+
 
 def train_model(hidden_units, learning_rate):
     # Load data
     cv_training_set = pd.read_csv(TRAINING_SET_FUSION, skipinitialspace=True,
-                               skiprows=1, names=COLUMNS)
+                                  skiprows=1, names=COLUMNS)
 
     cv_test_set = pd.read_csv(CV_SET_FUSION, skipinitialspace=True,
-                           skiprows=1, names=COLUMNS)
+                              skiprows=1, names=COLUMNS)
     cv_training_set = log_trip_duration(cv_training_set)
     cv_test_set = log_trip_duration(cv_test_set)
-    
+
     cv_training_set.pop('id')
     cv_training_set.pop('total_distance')
     cv_training_set.pop('total_duration')

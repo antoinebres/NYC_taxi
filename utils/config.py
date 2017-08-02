@@ -21,7 +21,7 @@ CV_TEST_SET_FILE = 'datasets/split_test.csv'
 PREDICTION_SET_FILE = 'datasets/sample_submission.csv'
 
 COLUMNS = [
-    "id",
+    # "id",
     "passenger_count",
     "vendor_id",
     "store_and_fwd_flag",
@@ -39,9 +39,9 @@ COLUMNS = [
     "trip_from_LaGd",
     "trip_to_LaGd",
     "work",
-    "total_distance",
-    "total_duration",
-    "number_of_streets",
+    # "total_distance",
+    # "total_duration",
+    # "number_of_streets",
     "trip_duration"
     ]
 
