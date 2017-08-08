@@ -46,9 +46,6 @@ COLUMNS = [
     'trip_from_LGA',
     'trip_to_LGA',
     'work',
-    'total_distance',
-    'total_duration',
-    'number_of_streets',
     'log_trip_duration',
     ]
 

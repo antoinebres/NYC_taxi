@@ -33,6 +33,8 @@ def dummy_manhattan_distance(lat1, lng1, lat2, lng2):
 
 def encode_cat(df):
     for f in df.columns:
+        if df[f].dtype == 'float64':
+            df[f] = df[f].astype(np.float32)
         if df[f].dtype == 'object':
             lbl = preprocessing.LabelEncoder()
             lbl.fit(list(df[f].values))
@@ -133,9 +135,6 @@ def select_features(df, train=True):
             'trip_from_LGA',
             'trip_to_LGA',
             'work',
-            'total_distance',
-            'total_duration',
-            'number_of_streets',
             'log_trip_duration',
         ]]
     else:
@@ -165,9 +164,6 @@ def select_features(df, train=True):
             'trip_from_LGA',
             'trip_to_LGA',
             'work',
-            'total_distance',
-            'total_duration',
-            'number_of_streets',
         ]]
 
 
@@ -180,6 +176,10 @@ def process(df, train=True):
         df = engineer_features(df, train=False)
         df = select_features(df, train=False)
     df = encode_cat(df)
+    null_values = df.isnull().sum().max()
+    if null_values != 0:
+        print('dropped lines because of null values')
+        df.dropna(inplace=True)
     return df
 
 
