@@ -10,8 +10,8 @@ LGA_coords = [40.7475, -73.7629]
 
 
 def log_trip_duration(df):
-    df['trip_duration_log'] = np.log(1 + df['trip_duration'].values)
-    df = df.drop('trip_duration', axis=1)
+    df['log_trip_duration'] = np.log(1 + df['trip_duration'].values)
+    # df = df.drop('trip_duration', axis=1)
     return df
 
 
@@ -41,17 +41,21 @@ def encode_cat(df):
 
 
 def remove_outliers(df):
-    # Suggested by headsortails' EDA (https://www.kaggle.com/headsortails/nyc-taxi-rides-eda)
+    # Suggested by headsortails' EDA (https://www.kaggle.com/headsortails/nyc-taxi-rides-eda) for exploration
     # remove trip_durations longer than 22 hours.
-    df = df[(df.trip_duration < 22*3600)]
+    # df = df[(df.trip_duration < 22*3600)]
     # lower trip_duration limit of 10 seconds
-    df = df[(df.trip_duration > 10)]
+    # df = df[(df.trip_duration > 10)]
     # remove those zero-distance trips that took more than a minute.
-    df = df.drop(df[(df['haversine_dist'] == 0) & (df['trip_duration'] > 60)].index)
+    # df = df.drop(df[(df['haversine_dist'] == 0) & (df['trip_duration'] > 60)].index)
+    # speed limit of 100 km/h.
+    # df = df[(df.speed <= 100)]
+
+    # Suggested by headsortails' EDA (https://www.kaggle.com/headsortails/nyc-taxi-eda-update-the-fast-the-curious) for model construction
+    # remove trip_durations longer than 24 hours.
+    df = df[(df.trip_duration < 24*3600)]
     # remove pickup or dropoff locations more than 300 km away from NYC
     df = df[(df['dist_JFK_pickup'] < 300)]
-    # speed limit of 100 km/h.
-    df = df[(df.speed <= 100)]
     return df
 
 
@@ -74,6 +78,7 @@ def engineer_features(df, train=True):
     # Suggested by headsortails' EDA (https://www.kaggle.com/headsortails/nyc-taxi-rides-eda)
     if train:
         df['speed'] = df['haversine_dist']/(df['trip_duration'] / 3600)  # km/h
+        df = log_trip_duration(df)
     df['dist_JFK_pickup'] = haversine_array(df['pickup_latitude'], df['pickup_longitude'], JFK_coords[0], JFK_coords[1])
     df['dist_JFK_dropoff'] = haversine_array(JFK_coords[0], JFK_coords[1], df['dropoff_latitude'], df['dropoff_longitude'])
     df['dist_LGA_pickup'] = haversine_array(df['pickup_latitude'], df['pickup_longitude'], LGA_coords[0], LGA_coords[1])
@@ -83,7 +88,6 @@ def engineer_features(df, train=True):
     df['trip_from_LGA'] = (df['dist_LGA_pickup'] < 2) * 1
     df['trip_to_LGA'] = (df['dist_LGA_dropoff'] < 2) * 1
     df['work'] = ((df['day_week'] < 5) & (df['pickup_hour'] > 8) & (df['pickup_hour'] < 18)) * 1
-    df['log_trip_duration'] = df.trip_duration.apply(np.log)
 
     # Time
     # Cyclical features
@@ -129,7 +133,9 @@ def select_features(df, train=True):
             'trip_from_LGA',
             'trip_to_LGA',
             'work',
-            'trip_duration',
+            'total_distance',
+            'total_duration',
+            'number_of_streets',
             'log_trip_duration',
         ]]
     else:
@@ -159,6 +165,9 @@ def select_features(df, train=True):
             'trip_from_LGA',
             'trip_to_LGA',
             'work',
+            'total_distance',
+            'total_duration',
+            'number_of_streets',
         ]]
 
 

@@ -21,28 +21,35 @@ CV_TEST_SET_FILE = 'datasets/split_test.csv'
 PREDICTION_SET_FILE = 'datasets/sample_submission.csv'
 
 COLUMNS = [
-    # "id",
-    "passenger_count",
-    "vendor_id",
-    "store_and_fwd_flag",
-    "pickup_hour",
-    "day_week",
-    "pickup_hour_weekofyear",
-    "pickup_pca0",
-    "pickup_pca1",
-    "dropoff_pca0",
-    "dropoff_pca1",
-    "manhattan_dist",
-    "haversine_dist",
-    "trip_to_JFK",
-    "trip_from_JFK",
-    "trip_from_LaGd",
-    "trip_to_LaGd",
-    "work",
-    # "total_distance",
-    # "total_duration",
-    # "number_of_streets",
-    "trip_duration"
+    'passenger_count',
+    'vendor_id',
+    'store_and_fwd_flag',
+    'weekofyear',
+    'coords_days_x',
+    'coords_days_y',
+    'coords_hours_x',
+    'coords_hours_y',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'pickup_pca0',
+    'pickup_pca1',
+    'dropoff_pca0',
+    'dropoff_pca1',
+    'manhattan_dist',
+    'haversine_dist',
+    'trip_to_JFK',
+    'trip_from_JFK',
+    'trip_from_LGA',
+    'trip_to_LGA',
+    'work',
+    'total_distance',
+    'total_duration',
+    'number_of_streets',
+    'log_trip_duration',
     ]
 
 CATEGORICALS = [
@@ -77,7 +84,7 @@ FEATURES = [
     'work',
     ]
 
-LABEL = 'trip_duration'
+LABEL = 'log_trip_duration'
 
 MODELS_DIR = 'tensorflow_part/models'
 
