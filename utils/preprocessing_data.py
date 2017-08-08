@@ -43,13 +43,13 @@ def encode_cat(df):
 def remove_outliers(df):
     # Suggested by headsortails' EDA (https://www.kaggle.com/headsortails/nyc-taxi-rides-eda)
     # remove trip_durations longer than 22 hours.
-    df = df[df.trip_duration < 22*3600]
+    df = df[(df.trip_duration < 22*3600)]
     # lower trip_duration limit of 10 seconds
     df = df[(df.trip_duration > 10)]
     # remove those zero-distance trips that took more than a minute.
     df = df.drop(df[(df['haversine_dist'] == 0) & (df['trip_duration'] > 60)].index)
     # remove pickup or dropoff locations more than 300 km away from NYC
-    df = df[df['dist_JFK_pickup'] < 300]
+    df = df[(df['dist_JFK_pickup'] < 300)]
     # speed limit of 100 km/h.
     df = df[(df.speed <= 100)]
     return df
@@ -62,7 +62,7 @@ def engineer_features(df, train=True):
     df['day_week'] = df.pickup_datetime.dt.weekday
     df['haversine_dist'] = haversine_array(df['pickup_latitude'], df['pickup_longitude'], df['dropoff_latitude'], df['dropoff_longitude'])
     df['manhattan_dist'] = dummy_manhattan_distance(df['pickup_latitude'], df['pickup_longitude'], df['dropoff_latitude'], df['dropoff_longitude'])
-    df['pickup_hour_weekofyear'] = df['pickup_datetime'].dt.weekofyear
+    df['weekofyear'] = df['pickup_datetime'].dt.weekofyear
     coords = np.vstack((df[['pickup_latitude', 'pickup_longitude']].values,
                         df[['dropoff_latitude', 'dropoff_longitude']].values))
     pca = PCA().fit(coords)
@@ -85,6 +85,19 @@ def engineer_features(df, train=True):
     df['work'] = ((df['day_week'] < 5) & (df['pickup_hour'] > 8) & (df['pickup_hour'] < 18)) * 1
     df['log_trip_duration'] = df.trip_duration.apply(np.log)
 
+    # Time
+    # Cyclical features
+    df['coords_days_x'] = np.cos(df['day_week']*2*np.pi/7)
+    df['coords_days_y'] = np.sin(df['day_week']*2*np.pi/7)
+    df['coords_hours_x'] = np.cos(df['pickup_hour']*2*np.pi/24)
+    df['coords_hours_y'] = np.cos(df['pickup_hour']*2*np.pi/24)
+    # Categorical features
+    df['Jan'] = (df.pickup_datetime.dt.month == 1) * 1
+    df['Feb'] = (df.pickup_datetime.dt.month == 2) * 1
+    df['Mar'] = (df.pickup_datetime.dt.month == 3) * 1
+    df['Apr'] = (df.pickup_datetime.dt.month == 4) * 1
+    df['May'] = (df.pickup_datetime.dt.month == 5) * 1
+    df['Jun'] = (df.pickup_datetime.dt.month == 6) * 1
     return df
 
 
@@ -94,9 +107,17 @@ def select_features(df, train=True):
             'passenger_count',
             'vendor_id',
             'store_and_fwd_flag',
-            'pickup_hour',
-            'day_week',
-            'pickup_hour_weekofyear',
+            'weekofyear',
+            'coords_days_x',
+            'coords_days_y',
+            'coords_hours_x',
+            'coords_hours_y',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
             'pickup_pca0',
             'pickup_pca1',
             'dropoff_pca0',
@@ -116,9 +137,17 @@ def select_features(df, train=True):
             'passenger_count',
             'vendor_id',
             'store_and_fwd_flag',
-            'pickup_hour',
-            'day_week',
-            'pickup_hour_weekofyear',
+            'weekofyear',
+            'coords_days_x',
+            'coords_days_y',
+            'coords_hours_x',
+            'coords_hours_y',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
             'pickup_pca0',
             'pickup_pca1',
             'dropoff_pca0',
